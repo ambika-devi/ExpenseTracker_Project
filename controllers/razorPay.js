@@ -3,8 +3,8 @@ const express = require("express");
 const Razorpay = require("razorpay");
 const User = require("../models/user");
 var instance = new Razorpay({
-  key_id:'id' ,
-  key_secret: 'secretkey'});
+  key_id:process.env.RAZOR_PAY_KEY ,
+  key_secret: process.env.RAZOR_PAY_SECRET});
 
 exports.postOrder = async (req, res) => {
   try {
@@ -28,7 +28,7 @@ exports.postVerifySignature = async (req, res) => {
   // console.log(req.body);
   const body = req.body.razorpay_order_id + "|" + req.body.razorpay_payment_id;
   const expectedSignature = crypto
-    .createHmac("sha256", 'secretkey')
+    .createHmac("sha256", process.env.RAZOR_PAY_SECRET)
     .update(body.toString())
     .digest("hex");
 

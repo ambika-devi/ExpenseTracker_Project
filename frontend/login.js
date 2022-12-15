@@ -46,7 +46,7 @@ const forgetPassSubmit = async (e) => {
     const email = e.target.querySelector("#forgot-pass-id").value;
     const data = { email };
     const response = await axios.post(
-      "http://localhost:3000/password/forgotpassword",
+      "http://localhost:5000/password/forgotpassword",
       data
     );
   } catch (error) {

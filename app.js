@@ -1,3 +1,5 @@
+const dotenv=require('dotenv');
+dotenv.config();
 const express=require('express');
 const bodyparser=require('body-parser');
 const cors=require('cors');
@@ -5,6 +7,7 @@ const userRoute=require('./routes/user');
 const expenseRoute=require('./routes/expense');
 const razorPayRoute=require('./routes/razorPay')
 const premiumRoute=require('./routes/premium');
+const forgotPassRoute=require('./routes/forgotPass');
 const User=require('./models/user');
 const Expenses=require('./models/expense');
 const { send } = require('process');
@@ -16,6 +19,7 @@ app.use('/user',userRoute);
 app.use('/expense',expenseRoute);
 app.use('/razorPay',razorPayRoute);
 app.use('/premiumUser',premiumRoute);
+app.use('/forgotPass',forgotPassRoute);
 app.use((req,res)=>{
     console.log(req.url);
     res.send("This is my Expense Tracker Project");
