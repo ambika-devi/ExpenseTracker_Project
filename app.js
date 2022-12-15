@@ -10,6 +10,7 @@ const premiumRoute=require('./routes/premium');
 const forgotPassRoute=require('./routes/forgotPass');
 const User=require('./models/user');
 const Expenses=require('./models/expense');
+const ResetPass = require("./models/resetPassword");
 const { send } = require('process');
 const sequelize=require('./util/database');
 const app=express();
@@ -27,6 +28,9 @@ app.use((req,res)=>{
 //ONE TO MANY RELATION
 User.hasMany(Expenses);
 Expenses.belongsTo(User);
+//one to many
+User.hasMany(ResetPass);
+ResetPass.belongsTo(User);
 sequelize.sync().then(()=>{
     app.listen(5000);
 }).catch((error)=>{

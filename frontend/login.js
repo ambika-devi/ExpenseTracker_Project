@@ -49,6 +49,7 @@ const forgetPassSubmit = async (e) => {
       "http://localhost:5000/password/forgotpassword",
       data
     );
+    createToast(response.data.msg, "green");
   } catch (error) {
     console.log(error);
   }
