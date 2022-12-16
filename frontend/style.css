@@ -98,3 +98,10 @@
     border-radius: 4px;
     color: white;
   }
+  /* PREMIUM */
+.premium-btns-container {
+  margin: 1rem;
+}
+.premium-btns-container btn {
+  display: flex;
+}
