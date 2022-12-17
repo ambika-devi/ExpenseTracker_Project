@@ -6,6 +6,7 @@ const goPremium=document.querySelector('#go-premium');
 const toast = document.querySelector(".toast-msg");
 const paginationDiv = document.querySelector(".pagination-btns");
 const paginationDivOthers = document.querySelector(".pagination-btns-others");
+const paginateRows = document.querySelector("#paginate-rows");
 let order;
 axios.defaults.headers.common["Authorization"] = localStorage.getItem("token");
 
@@ -79,8 +80,9 @@ const getAllUsersExpenses = async (page=1) => {
       "btn btn-success disabled";
       document.querySelector("#close-all-expenses").classList = "btn btn-danger";
     ulOthers.innerHTML = "";
+    const paginate = localStorage.getItem("paginate-rows") || 5;
     const response = await axios.get(
-      `http://localhost:5000/premiumUser/getAllExpenses?page=${page}`
+      `http://localhost:5000/premiumUser/getAllExpenses&paginate=${paginate}`
     );
     //console.log(response.data.pagination);
     const expenses = response.data.expenses;
@@ -171,7 +173,7 @@ const verifySignature = async (
 };
 const onPay = (e) => {
   var options = {
-    key:process.env.RAZOR_PAY_KEY, // Enter the Key ID generated from the Dashboard
+    key:'rzp_test_nFyZOgUkOJaM6B', // Enter the Key ID generated from the Dashboard
     amount: order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
     currency: "INR",
     name: "Ambika Inc.",
@@ -329,7 +331,9 @@ const fetchPaginationExpenses = async (page=1) => {
   try {
      //const headers = { authorization: localStorage.getItem("token") };
      ul.innerHTML = "";
-     const response = await axios.get(`http://localhost:5000/expense/getExpense?page=${page}`);
+     const paginate = localStorage.getItem("paginate-rows") || 5;
+    // console.log(paginate);
+     const response = await axios.get(`http://localhost:5000/expense/getExpense&paginate=${paginate}`);
      response.data.expenses.forEach((expense) => {
       displayExpense(expense);
     });
@@ -364,9 +368,16 @@ const onDOMloaded = async () => {
     }
   }
 };
+const onPaginateRows = (e) => {
+  e.preventDefault();
+  const paginate = document.querySelector("#paginate-rows-number").value;
+  localStorage.setItem("paginate-rows", paginate);
+};
 form.addEventListener("submit", onSubmit);
 document.addEventListener("DOMContentLoaded", onDOMloaded);
 ul.addEventListener("click", onClick);
 goPremium.addEventListener("click",onGoPremium);  
 paginationDiv.addEventListener("click", onPaginationBtnclick);
 paginationDivOthers.addEventListener("click", onPaginationBtnclickOthers);
+paginateRows.addEventListener("submit", onPaginateRows);
+console.log(paginateRows);

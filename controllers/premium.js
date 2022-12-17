@@ -4,7 +4,7 @@ const { Op } = require("sequelize");
 const  AWS=require('aws-sdk');
 const Expense = require("../models/expense");
 const FileLink = require("../models/file-link");
-const NUMBER_OF_EXPENSES_PER_PAGE=10;
+//const NUMBER_OF_EXPENSES_PER_PAGE=10;
 
 const uploadToS3 = (fileData, fileName) => {
   const s3 = new AWS.S3({
@@ -42,6 +42,7 @@ exports.getIsPremium = async (req, res) => {
 exports.getAllExpenses = async (req, res) => {
   const userId = req.user.id;
   const page=+req.query.page;
+  const NUMBER_OF_EXPENSES_PER_PAGE = +req.query.paginate || 5;
   // console.log("userId>>>>>", userId);
   try {
     const { count, rows: expense } = await Expense.findAndCountAll({

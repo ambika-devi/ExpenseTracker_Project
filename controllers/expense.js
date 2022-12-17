@@ -1,11 +1,13 @@
 const Expense = require('../models/expense');
-const NUMBER_OF_EXPENSES_PER_PAGE=10;
+//const NUMBER_OF_EXPENSES_PER_PAGE=10;
 
 
 exports.getAllExpenses = async (req, res) => {
   try {
     const page = +req.query.page || 1;
-    console.log(page);
+    const NUMBER_OF_EXPENSES_PER_PAGE=+req.query.pagination;
+      // console.log("req.query.paginate", NUMBER_OF_EXPENSES_PER_PAGE);
+    //console.log(page);
     const userId = req.user.id;
     const { count, rows: expenses } = await Expense.findAndCountAll({
       where: { userId },

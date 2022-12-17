@@ -1,8 +1,12 @@
-const dotenv=require('dotenv');
-dotenv.config();
+
+
 const express=require('express');
 const bodyparser=require('body-parser');
 const cors=require('cors');
+const app=express();
+const dotenv=require('dotenv');
+dotenv.config();
+
 const userRoute=require('./routes/user');
 const expenseRoute=require('./routes/expense');
 const razorPayRoute=require('./routes/razorPay')
@@ -14,7 +18,7 @@ const ResetPass = require("./models/resetPassword");
 const FileLink = require("./models/file-link");
 const { send } = require('process');
 const sequelize=require('./util/database');
-const app=express();
+
 app.use(cors());
 app.use(bodyparser.json());
 app.use('/user',userRoute);
