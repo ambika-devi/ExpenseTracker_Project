@@ -28,7 +28,7 @@ const getAllUsersExpenses = async (e) => {
     });
     ulOthers.insertAdjacentHTML(
       "afterend",
-      `<button id="close-all-expenses" class="btn btn-danger">close Expenses</button>`
+      `<button id="close-all-expenses" style:'margin-top:10px' class="btn btn-danger">Close Expenses</button>`
     );
     document
       .querySelector("#close-all-expenses")
@@ -45,9 +45,21 @@ const getAllUsersExpenses = async (e) => {
     }
   }
 };
-const generateReport = () => {
-  console.log("getting report");
-};
+const generateReport = async () => {
+  try {
+    const respone = await axios.get(
+      "http://localhost:5000/premiumUser/generateReport"
+    );
+    if (respone.status == 200) {
+      const a = document.createElement("a");
+      a.setAttribute("href", `${respone.data.reportLink}`);
+      a.setAttribute("download", "");
+      a.click();
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
 const premiumFeature = () => {
   goPremium.remove();
   document.querySelector("body").style.backgroundColor = "#222";

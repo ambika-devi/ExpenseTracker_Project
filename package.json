@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/ambika-devi/ExpenseTracker_Project#readme",
   "dependencies": {
+    "aws-sdk": "^2.1276.0",
     "bcrypt": "^5.1.0",
     "body-parser": "^1.20.1",
     "cors": "^2.8.5",
