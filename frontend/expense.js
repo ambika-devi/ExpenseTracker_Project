@@ -2,8 +2,68 @@ const form = document.querySelector("#form");
 const ul = document.querySelector(".list");
 const ulOthers=document.querySelector(".list-others");
 const goPremium=document.querySelector('#go-premium');
-axios.defaults.headers.common["Authorization"] = localStorage.getItem("token");
+//axios.defaults.headers.common["Authorization"] = localStorage.getItem("token");
+const toast = document.querySelector(".toast-msg");
+const paginationDiv = document.querySelector(".pagination-btns");
+const paginationDivOthers = document.querySelector(".pagination-btns-others");
 let order;
+axios.defaults.headers.common["Authorization"] = localStorage.getItem("token");
+
+const createToast = (msg, color = "orangered") => {
+  // console.log("toast created");
+  const div = document.createElement("div");
+  div.innerHTML = msg;
+  div.style.backgroundColor = color;
+  toast.insertAdjacentElement("afterbegin", div);
+  setTimeout(() => {
+    div.remove();
+    // console.log("div removed");
+  }, 2000);
+};
+
+const displayPaginationOthers = ({
+  currentPage,
+  hasNextPage,
+  hasPreviousPage,
+  nextPage,
+  previousPage,
+  lastPage,
+}) => {
+  const div = document.querySelector(".pagination-btns-others div");
+  if (hasNextPage && hasPreviousPage && nextPage != lastPage) {
+    div.innerHTML = ` <button >${previousPage}</button>
+    <button class="active">${currentPage}</button>
+    <button >${nextPage}</button>
+    <button >${lastPage}</button>`;
+  } else if (hasNextPage && hasPreviousPage) {
+    div.innerHTML = ` <button >${previousPage}</button>
+    <button class="active">${currentPage}</button>
+    <button >${nextPage}</button>`;
+  } else if (!hasNextPage && !hasPreviousPage) {
+    div.innerHTML = `<button class="active">${currentPage}</button>`;
+  } else if (!hasPreviousPage && hasNextPage && nextPage != lastPage) {
+    div.innerHTML = `<button class="active">${currentPage}</button>
+    <button >${nextPage}</button>
+    <button >${lastPage}</button>`;
+  } else if (!hasPreviousPage && hasNextPage) {
+    div.innerHTML = `<button class="active">${currentPage}</button>
+    <button >${nextPage}</button>`;
+  } else if (hasPreviousPage && !hasNextPage && previousPage != 1) {
+    div.innerHTML = `<button>${1}</button>
+    <button>${previousPage}</button>
+    <button class="active">${currentPage}</button>`;
+  } else if (hasPreviousPage && !hasNextPage) {
+    div.innerHTML = `<button>${previousPage}</button>
+    <button class="active">${currentPage}</button>`;
+  }
+  const closeBtn = document.querySelector("#close-all-expenses");
+  closeBtn.addEventListener("click", () => {
+    document.querySelector(".list-others").innerHTML = "";
+    closeBtn.classList = "btn btn-danger disabled";
+    document.querySelector(".pagination-btns-others div").innerHTML = "";
+    document.querySelector("#get-all-expenses").classList = "btn btn-success";
+  });
+};
 const displayOtherUserExpenses = ({ amount, description, category }) => {
   const li = document.createElement("li");
   li.classList = "list-group-item";
@@ -13,19 +73,24 @@ const displayOtherUserExpenses = ({ amount, description, category }) => {
   ulOthers.insertAdjacentElement("beforeend", li);
 };
 
-const getAllUsersExpenses = async (e) => {
+const getAllUsersExpenses = async (page=1) => {
   try {
     document.querySelector("#get-all-expenses").classList =
       "btn btn-success disabled";
+      document.querySelector("#close-all-expenses").classList = "btn btn-danger";
+    ulOthers.innerHTML = "";
     const response = await axios.get(
-      "http://localhost:5000/premiumUser/getAllExpenses"
+      `http://localhost:5000/premiumUser/getAllExpenses?page=${page}`
     );
-    console.log(response.data.expenses);
+    //console.log(response.data.pagination);
     const expenses = response.data.expenses;
-    console.log(response.data.msg);
+    //console.log(response.data.msg);
+
     expenses.forEach((expense) => {
       displayOtherUserExpenses(expense);
     });
+    displayPaginationOthers(response.data.pagination);
+    createToast(response.data.msg, "green");
     ulOthers.insertAdjacentHTML(
       "afterend",
       `<button id="close-all-expenses" style:'margin-top:10px' class="btn btn-danger">Close Expenses</button>`
@@ -39,10 +104,17 @@ const getAllUsersExpenses = async (e) => {
           "btn btn-success";
       });
   } catch (error) {
-    console.log(err);
+    console.log(error);
     if (error.response.status == 500) {
       console.log(error.response.data.msg);
+      createToast(error.response.data.msg);
     }
+  }
+};
+const onPaginationBtnclickOthers = (e) => {
+  if (e.target.tagName == "BUTTON") {
+    const page = e.target.textContent;
+    getAllUsersExpenses(page);
   }
 };
 const generateReport = async () => {
@@ -67,9 +139,10 @@ const premiumFeature = () => {
   div.classList = "premium-btns-container";
   div.style.margin = "1rem auto";
   const btns = `<button id="get-all-expenses" class="btn btn-success">All Users Expenses</button>
+  <button id="close-all-expenses" class="btn btn-danger disabled">Close Expenses</button>
   <button id="download-report"  class="btn btn-success">Generate Report</button>`;
   div.insertAdjacentHTML("afterbegin", btns);
-  ul.insertAdjacentElement("afterend", div);
+  paginationDiv.insertAdjacentElement("afterend", div);
   const btnGetAllExpenses = document.querySelector("#get-all-expenses");
   btnGetAllExpenses.addEventListener("click", getAllUsersExpenses);
 const btnGenerateReport = document.querySelector("#download-report");
@@ -84,19 +157,21 @@ const verifySignature = async (
   try {
     const data = { razorpay_payment_id, razorpay_order_id, razorpay_signature };
     const respone = await axios.post("http://localhost:5000/razorPay/verifySignature",data);
-    console.log(respone.data.msg);
+    //console.log(respone.data.msg);
     document.getElementById("rzp-button1").remove();
+    createToast(respone.data.msg, "green");
     premiumFeature();
   } catch (error) {
     console.log(error);
     if (error.response.status == 400) {
-      console.log(error.response.data.msg);
+      //console.log(error.response.data.msg);
+      createToast(error.response.data.msg);
     }
   }
 };
 const onPay = (e) => {
   var options = {
-    key: "id", // Enter the Key ID generated from the Dashboard
+    key:process.env.RAZOR_PAY_KEY, // Enter the Key ID generated from the Dashboard
     amount: order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
     currency: "INR",
     name: "Ambika Inc.",
@@ -137,10 +212,11 @@ const onGoPremium = async (e) => {
     console.log(order);
     goPremium.remove();
     const btnHTML = `<button id="rzp-button1" class="btn btn-success">pay</button>`;
-    ul.insertAdjacentHTML("afterend", btnHTML);
+    paginationDiv.insertAdjacentHTML("afterend", btnHTML);
     document.getElementById("rzp-button1").addEventListener("click", onPay);
   } catch (error) {
     console.log(error);
+    createToast(error.response.data.msg);
   }
 };
 const onClick = async (e) => {
@@ -148,16 +224,18 @@ const onClick = async (e) => {
     // console.log(e.target.parentElement);
     const id = e.target.parentElement.querySelector(".user-id").value;
     try {
-      const respone = await axios.delete(`http://localhost:5000/expense/deleteExpense/${id}`);
+      const response = await axios.delete(`http://localhost:5000/expense/deleteExpense/${id}`);
 
-      if (respone.status == 200) {
+      if (response.status == 200) {
         e.target.parentElement.remove();
-        console.log(respone.data.msg);
+        console.log(response.data.msg);
+         createToast(response.data.msg,'green');
       }
     } catch (error) {
       console.log(error);
       if (error.response.status == 500) {
-        console.log(error.response.data.msg);
+        //console.log(error.response.data.msg);
+        createToast(response.data.msg);
       }
     }
   }
@@ -171,8 +249,8 @@ const displayExpense = ({ id, amount, description, category }) => {
   input.type = "hidden";
   input.value = id;
   btnDel.className = "btn btn-danger float-end";
-  btnEdit.className = "btn btn-light float-end";
-  btnEdit.textContent = "Edit";
+  //btnEdit.className = "btn btn-light float-end";
+  //btnEdit.textContent = "Edit";
   btnDel.textContent = "Delete";
 
   li.classList = "list-group-item";
@@ -180,7 +258,7 @@ const displayExpense = ({ id, amount, description, category }) => {
     document.createTextNode(`${amount} - ${description} - ${category}`)
   );
   li.insertAdjacentElement("beforeend", btnDel);
-  li.insertAdjacentElement("beforeend", btnEdit);
+  //li.insertAdjacentElement("beforeend", btnEdit);
   li.insertAdjacentElement("beforeend", input);
   ul.insertAdjacentElement("beforeend", li);
 };
@@ -199,35 +277,96 @@ const onSubmit = async (e) => {
     const response = await axios.post("http://localhost:5000/expense/addexpense",data);
     console.log(response.data);
     displayExpense(response.data.expense);
+    createToast(response.data.msg, "green");
+    expenseAmount.value = "";
+    expenseDetails.value = "";
+    expenseCategory.value = "";
   } catch (error) {
     console.log(error);
     if (error.response.status == 500) {
       console.log(error.response.data.msg);
+      createToast(respone.data.msg);
     }
   }
 };
-
-const fetchAllExpenses = async () => {
+const displayPagination = ({
+  currentPage,
+  hasNextPage,
+  hasPreviousPage,
+  nextPage,
+  previousPage,
+  lastPage,
+}) => {
+  const pagination = document.querySelector(".pagination-btns");
+  if (hasNextPage && hasPreviousPage && nextPage != lastPage) {
+    pagination.innerHTML = ` <button >${previousPage}</button>
+    <button class="active">${currentPage}</button>
+    <button >${nextPage}</button>
+    <button >${lastPage}</button>`;
+  } else if (hasNextPage && hasPreviousPage) {
+    pagination.innerHTML = ` <button >${previousPage}</button>
+    <button class="active">${currentPage}</button>
+    <button >${nextPage}</button>`;
+  } else if (!hasNextPage && !hasPreviousPage) {
+    pagination.innerHTML = `<button class="active">${currentPage}</button>`;
+  } else if (!hasPreviousPage && hasNextPage && nextPage != lastPage) {
+    pagination.innerHTML = `<button class="active">${currentPage}</button>
+    <button >${nextPage}</button>
+    <button >${lastPage}</button>`;
+  } else if (!hasPreviousPage && hasNextPage) {
+    pagination.innerHTML = `<button class="active">${currentPage}</button>
+    <button >${nextPage}</button>`;
+  } else if (hasPreviousPage && !hasNextPage && previousPage != 1) {
+    pagination.innerHTML = `<button>${1}</button>
+    <button>${previousPage}</button>
+    <button class="active">${currentPage}</button>`;
+  } else if (hasPreviousPage && !hasNextPage) {
+    pagination.innerHTML = `<button>${previousPage}</button>
+    <button class="active">${currentPage}</button>`;
+  }
+};
+const fetchPaginationExpenses = async (page=1) => {
   try {
-     const headers = { authorization: localStorage.getItem("token") };
-    const response = await axios.get("http://localhost:5000/expense/getExpense");
-    console.log(response);//all the expenses
+     //const headers = { authorization: localStorage.getItem("token") };
+     ul.innerHTML = "";
+     const response = await axios.get(`http://localhost:5000/expense/getExpense?page=${page}`);
+     response.data.expenses.forEach((expense) => {
+      displayExpense(expense);
+    });
+    // console.log(response.data.pagination);
+    displayPagination(response.data.pagination);
+    // console.log(response.data.msg);
+    createToast(response.data.msg, "green");
+  } catch (error) {
+    console.log(error);
+    createToast(error.response.data.msg);
+  }
+};
+const onPaginationBtnclick = (e) => {
+  if (e.target.tagName == "BUTTON") {
+    const page = e.target.textContent;
+    fetchPaginationExpenses(page);
+  }
+};
+const onDOMloaded = async () => {
+  try {
+    //console.log(response);//all the expenses
     const premium = await axios.get("http://localhost:5000/premiumUser/isPremium");
     if (premium.data.isPremium) {
       premiumFeature();
     }
-    response.data.expenses.forEach((expense) => {
-      displayExpense(expense);
-    });
-    console.log(response.data.msg);
+    fetchPaginationExpenses(1);
   } catch (error) {
     console.log(error);
     if (error.response.status == 500) {
       console.log(error.response.data.msg);
+      
     }
   }
 };
 form.addEventListener("submit", onSubmit);
-document.addEventListener("DOMContentLoaded", fetchAllExpenses);
+document.addEventListener("DOMContentLoaded", onDOMloaded);
 ul.addEventListener("click", onClick);
 goPremium.addEventListener("click",onGoPremium);  
+paginationDiv.addEventListener("click", onPaginationBtnclick);
+paginationDivOthers.addEventListener("click", onPaginationBtnclickOthers);

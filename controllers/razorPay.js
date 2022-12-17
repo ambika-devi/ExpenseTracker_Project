@@ -1,9 +1,10 @@
+require('dotenv').config();
 const crypto = require("crypto");
 const express = require("express");
 const Razorpay = require("razorpay");
 const User = require("../models/user");
 var instance = new Razorpay({
-  key_id:process.env.RAZOR_PAY_KEY ,
+key_id: process.env.RAZOR_PAY_KEY,
   key_secret: process.env.RAZOR_PAY_SECRET});
 
 exports.postOrder = async (req, res) => {
@@ -14,8 +15,8 @@ exports.postOrder = async (req, res) => {
       receipt: "receipt#1",
     };
     const order = await instance.orders.create(options);
-    // console.log(order);
-    // console.log(req.user);
+     console.log(order);
+     console.log(req.user);
     await req.user.update({ orderId: order.id });
     res.status(200).send({ order });
   } catch (err) {

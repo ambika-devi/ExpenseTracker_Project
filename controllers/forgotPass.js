@@ -7,7 +7,6 @@ const ResetPass = require("../models/resetPassword");
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
 const apiKey = defaultClient.authentications["api-key"];
 apiKey.apiKey = process.env.SEND_IN_BLUE_KEY;
-
 //sending mail using sendIn blue
 exports.postForgotPass =async (req, res) => {
   // console.log(req.body.email);
