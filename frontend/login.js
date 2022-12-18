@@ -60,7 +60,7 @@ const forgotPass = () => {
     <p style="margin-bottom: 10px;">Please enter email address to <strong>RESET</strong> password</p>
       <div class="form-inputs">
         <input type="email" id='forgot-pass-id' name='email' placeholder="Enter Email" Required/>
-        <button type="submit" class="btn" id='submit-forgot-pass'>REST PASSWORD</button>
+        <button type="submit" class="btn" id='submit-forgot-pass'>RESET PASSWORD</button>
         </div>
   </form>
 </div>`;

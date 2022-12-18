@@ -3,9 +3,14 @@
 const express=require('express');
 const bodyparser=require('body-parser');
 const cors=require('cors');
+const fs=require('fs');
+const path=require('path');
 const app=express();
 const dotenv=require('dotenv');
 dotenv.config();
+const helmet=require('helmet');
+const morgan=require('morgan');
+
 
 const userRoute=require('./routes/user');
 const expenseRoute=require('./routes/expense');
@@ -20,7 +25,13 @@ const { send } = require('process');
 const sequelize=require('./util/database');
 
 app.use(cors());
+app.use(helmet());
 app.use(bodyparser.json());
+const accessLogStream = fs.createWriteStream(
+    path.join(__dirname, "access.log"),
+    { flags: "a" }
+  );
+  app.use(morgan("combined", { stream: accessLogStream }))
 app.use('/user',userRoute);
 app.use('/expense',expenseRoute);
 app.use('/razorPay',razorPayRoute);
@@ -40,7 +51,7 @@ ResetPass.belongsTo(User);
 User.hasMany(FileLink);
 FileLink.belongsTo(User);
 sequelize.sync().then(()=>{
-    app.listen(5000);
+    app.listen(process.env.PORT);
 }).catch((error)=>{
     console.log("sequelize is failed");
     console.log(error);
